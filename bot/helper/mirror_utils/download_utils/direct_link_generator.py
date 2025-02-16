@@ -285,12 +285,12 @@ def debrid_link(url):
         return details
 
 def datanodes(url):
-    async with ClientSession() as session:
-        res = await session.get(url)
-        soup = BeautifulSoup(await res.text(),'html.parser')
+    with create_scraper() as session:
+        res = session.get(url)
+        soup = BeautifulSoup(res.text,'html.parser')
         data = {i.get('name'): i.get('value') for i in soup.find_all('form')[-1].find_all('input')}
         data['method_free'] = 'Free Download >>'
-        res = await session.post(
+        res = session.post(
            'https://datanodes.to/download',
            data=data,
            headers={'Referer':'https://datanodes.to/download'},
@@ -301,13 +301,13 @@ def datanodes(url):
           'method_free':'Free Download >>',
           'method_premium': '' ,'op':'download2',
           'rand':'','referer':'https://datanodes.to/download'}
-        res = await session.post(
+        res = session.post(
            'https://datanodes.to/download',
             data=data,
             headers={'Referer':'https://datanodes.to/download'},
             cookies=res.cookies
             )
-        return str(''.join(unquote((await res.json())['url']).split('\n')))
+        return str(''.join(unquote((res.json())['url']).split('\n')))
 
 
 
