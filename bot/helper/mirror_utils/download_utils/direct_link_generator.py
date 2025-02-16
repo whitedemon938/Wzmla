@@ -16,6 +16,8 @@ from urllib.parse import parse_qs, quote, unquote, urlparse, urljoin
 from cloudscraper import create_scraper
 from lk21 import Bypass
 from http.cookiejar import MozillaCookieJar
+from aiohttp import ClientSession
+from bs4 import BeautifulSoup
 
 from bot import LOGGER, config_dict
 from bot.helper.ext_utils.bot_utils import get_readable_time, is_share_link, is_index_link, is_magnet
@@ -145,6 +147,8 @@ def direct_link_generator(link):
         return fichier(link)
     elif 'solidfiles.com' in domain:
         return solidfiles(link)
+    elif 'datanodes' in domain:
+        return datanodes(url)
     elif 'krakenfiles.com' in domain:
         return krakenfiles(link)
     elif 'upload.ee' in domain:
@@ -279,6 +283,32 @@ def debrid_link(url):
                 details['total_size'] += dl['size']
             details['contents'].append(item)
         return details
+
+def datanodes(url):
+    async with ClientSession() as session:
+        res = await session.get(url)
+        soup = BeautifulSoup(await res.text(),'html.parser')
+        data = {i.get('name'): i.get('value') for i in soup.find_all('form')[-1].find_all('input')}
+        data['method_free'] = 'Free Download >>'
+        res = await session.post(
+           'https://datanodes.to/download',
+           data=data,
+           headers={'Referer':'https://datanodes.to/download'},
+           cookies=res.cookies
+           )
+        data = {
+          'dl':'1', 'id': url.split('/')[-2],
+          'method_free':'Free Download >>',
+          'method_premium': '' ,'op':'download2',
+          'rand':'','referer':'https://datanodes.to/download'}
+        res = await session.post(
+           'https://datanodes.to/download',
+            data=data,
+            headers={'Referer':'https://datanodes.to/download'},
+            cookies=res.cookies
+            )
+        return str(''.join(unquote((await res.json())['url']).split('\n')))
+
 
 
 def get_captcha_token(session, params):
