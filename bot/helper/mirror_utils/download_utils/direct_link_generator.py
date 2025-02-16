@@ -148,7 +148,7 @@ def direct_link_generator(link):
     elif 'solidfiles.com' in domain:
         return solidfiles(link)
     elif 'datanodes' in domain:
-        return datanodes(url)
+        return datanodes(link)
     elif 'krakenfiles.com' in domain:
         return krakenfiles(link)
     elif 'upload.ee' in domain:
